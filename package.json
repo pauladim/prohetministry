@@ -1,7 +1,7 @@
 {
   "name": "prophet-ministry",
   "version": "1.0.0",
-  "description": "Prophet Emmanuel Osei Ministry — Full Stack Website",
+  "description": "Prophet Desmond Obi Ministry — Full Stack Website",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
