@@ -17,7 +17,11 @@ function BookCard({ book, onBuy }) {
       {/* Book cover */}
       <div className="relative aspect-[3/2] overflow-hidden bg-gray-100 flex items-center justify-center">
         {book.coverImage ? (
-          <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover" />
+          <img 
+            src={book.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${book.coverImage}` : book.coverImage} 
+            alt={book.title} 
+            className="w-full h-full object-cover" 
+          />
         ) : (
           <BookCover title={book.title} type={book.type} tag={book.tag} className="absolute inset-0" />
         )}

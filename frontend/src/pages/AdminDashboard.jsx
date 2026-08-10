@@ -1002,7 +1002,11 @@ export default function AdminDashboard() {
                             <td className="px-5 py-3">
                               <div className="w-10 h-14 bg-gray-100 rounded border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
                                 {b.coverImage ? (
-                                  <img src={b.coverImage} alt={b.title} className="w-full h-full object-cover" />
+                                  <img 
+                                    src={b.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${b.coverImage}` : b.coverImage} 
+                                    alt={b.title} 
+                                    className="w-full h-full object-cover" 
+                                  />
                                 ) : (
                                   <span className="text-[10px] text-gray-400 font-bold uppercase">Cover</span>
                                 )}
