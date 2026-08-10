@@ -1,3 +1,13 @@
+const { Resend } = require('resend')
+
+console.log('🔥🔥🔥 EMAIL.JS HAS BEEN LOADED 🔥🔥🔥')
+console.log('📧 RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'SET' : 'NOT SET')
+console.log('📧 EMAIL_FROM:', process.env.EMAIL_FROM || 'NOT SET')
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+console.log('✅ Resend email service initialized')
+
 const dns = require('dns')
 
 dns.lookup('smtp.gmail.com', (err, address, family) => {
@@ -185,20 +195,52 @@ async function sendPhysicalOrderConfirmationEmail({ to, name, bookTitle, referen
 //   })
 // }
 
+// async function sendContactAcknowledgement({ to, name, subject }) {
+//   console.log('📨 Starting contact acknowledgement email...')
+//   console.log('📨 Sending email to:', to)
+
+//   const result = await transporter.sendMail({
+//     from: process.env.EMAIL_FROM,
+//     to,
+//     subject: 'We received your message — Prophet Desmond Obi Ministry',
+//     html: `<p>Dear ${name},<br/><br/>Thank you for reaching out. We have received your message and will respond within 2–3 business days.<br/><br/>God bless you,<br/>Desmond Obi Ministry Team</p>`,
+//   })
+
+//   console.log('✅ Contact acknowledgement email sent:', result.messageId)
+
+//   return result
+// }
 async function sendContactAcknowledgement({ to, name, subject }) {
   console.log('📨 Starting contact acknowledgement email...')
   console.log('📨 Sending email to:', to)
 
-  const result = await transporter.sendMail({
+  const { data, error } = await resend.emails.send({
     from: process.env.EMAIL_FROM,
-    to,
+    to: [to],
     subject: 'We received your message — Prophet Desmond Obi Ministry',
-    html: `<p>Dear ${name},<br/><br/>Thank you for reaching out. We have received your message and will respond within 2–3 business days.<br/><br/>God bless you,<br/>Desmond Obi Ministry Team</p>`,
+    html: `
+      <p>Dear ${name},</p>
+
+      <p>
+        Thank you for reaching out. We have received your message
+        and will respond within 2–3 business days.
+      </p>
+
+      <p>
+        God bless you,<br/>
+        Desmond Obi Ministry Team
+      </p>
+    `,
   })
 
-  console.log('✅ Contact acknowledgement email sent:', result.messageId)
+  if (error) {
+    console.error('❌ Resend contact email failed:', error)
+    throw new Error(error.message || 'Failed to send email')
+  }
 
-  return result
+  console.log('✅ Contact acknowledgement email sent:', data.id)
+
+  return data
 }
 
 /**
