@@ -71,7 +71,7 @@ export default function Books() {
     async function loadBooks() {
       try {
         setLoading(true)
-        const { data } = await axios.get('/api/books')
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/books`)
         setBooks(data)
       } catch (err) {
         console.error('Error fetching books:', err)

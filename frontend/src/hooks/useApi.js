@@ -49,7 +49,7 @@ export function usePayment() {
   const initiatePaystack = async ({ email, name, bookId }) => {
     setLoading(true)
     try {
-      const { data } = await axios.post('/api/payments/paystack/initialize', { email, name, bookId })
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/payments/paystack/initialize`, { email, name, bookId })
       if (data.authorization_url) window.location.href = data.authorization_url
     } finally {
       setLoading(false)
@@ -59,7 +59,7 @@ export function usePayment() {
   const initiateStripe = async ({ email, name, bookId }) => {
     setLoading(true)
     try {
-      const { data } = await axios.post('/api/payments/stripe/create-session', {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/payments/stripe/create-session`, {
         email, name, bookId,
         successUrl: `${window.location.origin}/payment-success`,
         cancelUrl: `${window.location.origin}/books`,

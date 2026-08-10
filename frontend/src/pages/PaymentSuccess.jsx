@@ -24,7 +24,7 @@ export default function PaymentSuccess() {
 
   const verifyPayment = async () => {
     try {
-      const { data } = await axios.post('/api/payments/verify', { reference, gateway })
+      const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/payments/verify`, { reference, gateway })
       setOrderData(data.order)
       if (data.order.bookType === 'ebook') {
         setStatus('ebook_success')
@@ -39,7 +39,7 @@ export default function PaymentSuccess() {
   const onDeliverySubmit = async (formData) => {
     setSubmitting(true)
     try {
-      await axios.post('/api/orders/delivery', { orderId: orderData._id, ...formData })
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/orders/delivery`, { orderId: orderData._id, ...formData })
       toast.success('Delivery details saved!')
       setStatus('physical_success')
     } catch {

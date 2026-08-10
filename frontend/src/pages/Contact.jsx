@@ -14,7 +14,7 @@ export default function Contact() {
   const onSubmit = async (data) => {
     setLoading(true)
     try {
-      await axios.post('/api/contact', data)
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/contact`, data)
       toast.success('Message sent! We will respond shortly.')
       reset()
     } catch {

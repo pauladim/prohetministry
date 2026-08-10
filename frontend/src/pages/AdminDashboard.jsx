@@ -101,7 +101,7 @@ function ContactDetailModal({ contact, onClose, onReplySuccess, token }) {
     }
     setSending(true)
     try {
-      const res = await axios.post(`/api/admin/contacts/${contact._id}/reply`,
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/contacts/${contact._id}/reply`,
         { replyMessage: replyText },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -345,10 +345,10 @@ function BookModal({ book, onClose, onSaveSuccess, token }) {
       }
 
       if (book) {
-        await axios.put(`/api/admin/books/${book._id}`, formData, { headers })
+        await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/books/${book._id}`, formData, { headers })
         toast.success('Book updated successfully')
       } else {
-        await axios.post('/api/admin/books', formData, { headers })
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/books`, formData, { headers })
         toast.success('Book created successfully')
       }
       onSaveSuccess()
@@ -523,10 +523,10 @@ export default function AdminDashboard() {
     try {
       const h = { Authorization: `Bearer ${admin?.token}` }
       const [eb, ph, ct, bk] = await Promise.all([
-        axios.get('/api/admin/orders/ebooks', { headers: h }),
-        axios.get('/api/admin/orders/physical', { headers: h }),
-        axios.get('/api/admin/contacts', { headers: h }),
-        axios.get('/api/books')
+        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/orders/ebooks`, { headers: h }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/orders/physical`, { headers: h }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/admin/contacts`, { headers: h }),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/books`)
       ])
       if (eb.data?.length) setEbookOrders(eb.data)
       if (ph.data?.length) setPhysicalOrders(ph.data)
@@ -552,7 +552,7 @@ export default function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this book? This will permanently remove it.')) return
     try {
       const h = { Authorization: `Bearer ${admin?.token}` }
-      await axios.delete(`/api/admin/books/${id}`, { headers: h })
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/admin/books/${id}`, { headers: h })
       toast.success('Book deleted successfully')
       fetchData()
     } catch (err) {

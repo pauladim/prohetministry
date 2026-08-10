@@ -23,6 +23,10 @@ function AnimatedRoutes() {
   const location = useLocation()
   const isAdmin = location.pathname.startsWith('/admin')
 
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
   return (
     <>
       {!isAdmin && <Navbar />}

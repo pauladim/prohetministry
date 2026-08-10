@@ -35,13 +35,13 @@ export default function Home() {
       {/* HERO */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
         {/* Background radial */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(29,110,77,0.12),transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_60%_at_80%_50%,rgba(29,110,77,0.06),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(29,110,77,0.12),transparent)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_60%_at_80%_50%,rgba(29,110,77,0.06),transparent)] pointer-events-none" />
 
         {/* Decorative lines */}
-        <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-200/50 to-transparent" />
+        <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-green-200/50 to-transparent pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center py-20">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center py-20">
           {/* Text */}
           <div>
             <motion.div

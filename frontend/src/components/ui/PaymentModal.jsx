@@ -26,7 +26,7 @@ export default function PaymentModal({ book, onClose }) {
     setLoading(true)
     try {
       // 1. Initialize checkout session on the backend
-      const { data: initData } = await axios.post('/api/payments/paystack/initialize', {
+      const { data: initData } = await axios.post(`${import.meta.env.VITE_API_URL}/api/payments/paystack/initialize`, {
         email: data.email,
         name: data.name,
         bookId: book._id
@@ -70,7 +70,7 @@ export default function PaymentModal({ book, onClose }) {
 
     setLoading(true)
     try {
-      const { data: response } = await axios.post('/api/payments/stripe/create-session', {
+      const { data: response } = await axios.post(`${import.meta.env.VITE_API_URL}/api/payments/stripe/create-session`, {
         email: data.email,
         name: data.name,
         bookId: book._id

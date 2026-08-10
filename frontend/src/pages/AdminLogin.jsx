@@ -17,7 +17,7 @@ export default function AdminLogin() {
   const onSubmit = async (data) => {
     setLoading(true)
     try {
-      const { data: res } = await axios.post('/api/admin/login', data)
+      const { data: res } = await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/login`, data)
       login(res.token)
       toast.success('Welcome, Administrator')
       navigate('/admin/dashboard')
