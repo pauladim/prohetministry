@@ -19,9 +19,19 @@ const transporter = nodemailer.createTransport({
 })
 
 // Verify connection on startup
-transporter.verify()
-  .then(() => console.log('✅ Email transporter ready'))
-  .catch(err => console.warn('⚠️  Email transporter not configured:', err.message))
+// transporter.verify()
+//   .then(() => console.log('✅ Email transporter ready'))
+//   .catch(err => console.warn('⚠️  Email transporter not configured:', err.message))
+
+console.log('📧 Checking Gmail SMTP connection...')
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ SMTP verification failed:', error)
+  } else {
+    console.log('✅ Email transporter ready')
+  }
+})
 
 /**
  * Send ebook download link email
@@ -143,13 +153,29 @@ async function sendPhysicalOrderConfirmationEmail({ to, name, bookTitle, referen
 /**
  * Send contact acknowledgement
  */
+// async function sendContactAcknowledgement({ to, name, subject }) {
+//   return transporter.sendMail({
+//     from: process.env.EMAIL_FROM,
+//     to,
+//     subject: 'We received your message — Prophet Desmond Obi Ministry',
+//     html: `<p>Dear ${name},<br/><br/>Thank you for reaching out. We have received your message and will respond within 2–3 business days.<br/><br/>God bless you,<br/>Desmond Obi Ministry Team</p>`,
+//   })
+// }
+
 async function sendContactAcknowledgement({ to, name, subject }) {
-  return transporter.sendMail({
+  console.log('📨 Starting contact acknowledgement email...')
+  console.log('📨 Sending email to:', to)
+
+  const result = await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to,
     subject: 'We received your message — Prophet Desmond Obi Ministry',
     html: `<p>Dear ${name},<br/><br/>Thank you for reaching out. We have received your message and will respond within 2–3 business days.<br/><br/>God bless you,<br/>Desmond Obi Ministry Team</p>`,
   })
+
+  console.log('✅ Contact acknowledgement email sent:', result.messageId)
+
+  return result
 }
 
 /**
