@@ -1,3 +1,13 @@
+const dns = require('dns')
+
+dns.lookup('smtp.gmail.com', (err, address, family) => {
+  if (err) {
+    console.error('❌ DNS lookup failed:', err.message)
+  } else {
+    console.log(`✅ smtp.gmail.com resolved to ${address} (IPv${family})`)
+  }
+})
+
 console.log('🔥🔥🔥 EMAIL.JS HAS BEEN LOADED 🔥🔥🔥')
 
 const nodemailer = require('nodemailer')
