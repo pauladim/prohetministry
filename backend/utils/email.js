@@ -8,6 +8,16 @@ console.log('📧 EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET')
 console.log('📧 EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET')
 console.log('📧 EMAIL_FROM:', process.env.EMAIL_FROM ? 'SET' : 'NOT SET')
 
+// const transporter = nodemailer.createTransport({
+//   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+//   port: parseInt(process.env.EMAIL_PORT) || 587,
+//   secure: false,
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// })
+
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.EMAIL_PORT) || 587,
@@ -16,6 +26,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 })
 
 // Verify connection on startup

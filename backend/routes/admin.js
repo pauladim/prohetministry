@@ -206,19 +206,35 @@ router.post('/contacts/:id/reply', authMiddleware, isAdmin, async (req, res) => 
     await contact.save()
 
     // Send actual reply email
-    try {
-      await sendContactReplyEmail({
-        to: contact.email,
-        name: contact.name,
-        subject: contact.subject,
-        message: contact.message,
-        replyMessage: contact.replyMessage
-      })
-    } catch (emailErr) {
-      console.warn('⚠️ Reply email failed to send:', emailErr.message)
-    }
+    // try {
+    //   await sendContactReplyEmail({
+    //     to: contact.email,
+    //     name: contact.name,
+    //     subject: contact.subject,
+    //     message: contact.message,
+    //     replyMessage: contact.replyMessage
+    //   })
+    // } catch (emailErr) {
+    //   console.warn('⚠️ Reply email failed to send:', emailErr.message)
+    // }
+
+    // res.json({ success: true, contact })
 
     res.json({ success: true, contact })
+
+sendContactReplyEmail({
+  to: contact.email,
+  name: contact.name,
+  subject: contact.subject,
+  message: contact.message,
+  replyMessage: contact.replyMessage
+})
+  .then(() => {
+    console.log('✅ Reply email sent successfully')
+  })
+  .catch((emailErr) => {
+    console.error('❌ Reply email failed:', emailErr.message)
+  })
   } catch (err) {
     console.error('Reply contact message error:', err.stack || err.message)
     res.status(500).json({ error: 'Failed to save reply message' })
