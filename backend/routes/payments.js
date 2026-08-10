@@ -232,7 +232,7 @@ router.post('/stripe/create-session', limiter, async (req, res) => {
       return res.status(404).json({ error: 'Invalid bookId' })
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+    const frontendUrl = process.env.FRONTEND_URL || 'https://prohetministry-l1ww-rose.vercel.app/'
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -530,7 +530,7 @@ router.post('/verify', async (req, res) => {
 ─────────────────────────────── */
 async function handleSuccessfulPayment(order) {
   try {
-    const baseUrl = process.env.BACKEND_URL || process.env.EBOOK_BASE_URL || 'http://localhost:5000'
+    const baseUrl = process.env.BACKEND_URL || process.env.EBOOK_BASE_URL || 'https://prohetministry.onrender.com'
 
     console.log(`[INFO] Handling successful payment logic for reference: ${order.paymentReference}`)
 

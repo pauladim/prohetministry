@@ -280,6 +280,7 @@ const saveCoverImage = async (file) => {
   }
   const filename = `cover-${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`
   const filepath = path.join(uploadsDir, filename)
+  console.log('Saving image to:', filepath)
   await fs.promises.writeFile(filepath, file.buffer)
   return `/uploads/${filename}`
 }
