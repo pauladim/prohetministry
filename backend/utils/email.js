@@ -1,4 +1,20 @@
+console.log('🔥🔥🔥 EMAIL.JS HAS BEEN LOADED 🔥🔥🔥')
+
 const nodemailer = require('nodemailer')
+
+console.log('📧 EMAIL_HOST:', process.env.EMAIL_HOST || 'NOT SET')
+console.log('📧 EMAIL_PORT:', process.env.EMAIL_PORT || 'NOT SET')
+console.log('📧 EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET')
+console.log('📧 EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET')
+console.log('📧 EMAIL_FROM:', process.env.EMAIL_FROM ? 'SET' : 'NOT SET')
+const nodemailer = require('nodemailer')
+
+console.log('📧 email.js loaded')
+console.log('📧 EMAIL_HOST:', process.env.EMAIL_HOST || 'NOT SET')
+console.log('📧 EMAIL_PORT:', process.env.EMAIL_PORT || 'NOT SET')
+console.log('📧 EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET')
+console.log('📧 EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET')
+console.log('📧 EMAIL_FROM:', process.env.EMAIL_FROM ? 'SET' : 'NOT SET')
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -54,7 +70,6 @@ async function sendEbookDownloadEmail({ to, name, bookTitle, downloadUrl, readOn
 
         <div style="text-align: center; margin: 30px 0;">
           <a href="${downloadUrl}" class="btn" style="margin: 8px 12px;">Download PDF</a>
-          <a href="${readOnlineUrl}" class="btn btn-secondary" style="margin: 8px 12px;">Read Online</a>
         </div>
 
         <p style="font-size: 13px; color: #6b7280;">
