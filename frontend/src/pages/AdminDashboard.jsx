@@ -12,6 +12,20 @@ import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+const getCoverImageUrl = (coverImage) => {
+  if (!coverImage) return ''
+  if (coverImage.startsWith('http://') || coverImage.startsWith('https://')) {
+    return coverImage
+  }
+  if (coverImage.startsWith('/uploads')) {
+    return `${import.meta.env.VITE_API_URL || ''}${coverImage}`
+  }
+  if (coverImage.startsWith('/api/books/cover')) {
+    return `${import.meta.env.VITE_API_URL || ''}${coverImage}`
+  }
+  return `${import.meta.env.VITE_API_URL || ''}/api/books/cover/${coverImage}`
+}
+
 const STATUS_CFG = {
   completed: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10', label: 'Completed' },
   pending: { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10', label: 'Pending' },
@@ -41,29 +55,7 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-// ─── Mock data (shown when backend not connected) ─────────────────────────────
-const MOCK_EBOOKS = [
-  { _id: '1', name: 'Grace Mensah', email: 'grace@example.com', book: 'Portals of Heaven', reference: 'PAY-REF-XA001', paymentStatus: 'completed', emailStatus: 'sent', gateway: 'paystack', createdAt: '2024-03-15T10:30:00Z' },
-  { _id: '2', name: 'David Asante', email: 'david@example.com', book: "The Seer's Mantle", reference: 'cs_live_XB002', paymentStatus: 'completed', emailStatus: 'sent', gateway: 'stripe', createdAt: '2024-03-14T09:15:00Z' },
-  { _id: '3', name: 'Akosua Boateng', email: 'akosua@example.com', book: 'Covenant Prayers', reference: 'PAY-REF-XC003', paymentStatus: 'pending', emailStatus: 'not_sent', gateway: 'paystack', createdAt: '2024-03-13T14:00:00Z' },
-  { _id: '4', name: 'James Owusu', email: 'james@example.com', book: 'Portals of Heaven', reference: 'cs_live_XD004', paymentStatus: 'completed', emailStatus: 'sent', gateway: 'stripe', createdAt: '2024-03-12T11:45:00Z' },
-  { _id: '5', name: 'Efua Amankwah', email: 'efua@example.com', book: "The Seer's Mantle", reference: 'PAY-REF-XE005', paymentStatus: 'completed', emailStatus: 'sent', gateway: 'paystack', createdAt: '2024-03-11T08:00:00Z' },
-  { _id: '6', name: 'Kofi Acheampong', email: 'kofi@example.com', book: 'Covenant Prayers', reference: 'cs_live_XF006', paymentStatus: 'failed', emailStatus: 'not_sent', gateway: 'stripe', createdAt: '2024-03-10T16:20:00Z' },
-]
 
-const MOCK_PHYSICAL = [
-  { _id: '1', name: 'Abena Ofosu', phone: '+44 7700 900001', address: '12 Kings Road', city: 'London', country: 'United Kingdom', book: 'Voices of Destiny', reference: 'PAY-REF-YA001', paymentStatus: 'completed', gateway: 'paystack', createdAt: '2024-03-15T08:00:00Z' },
-  { _id: '2', name: 'Emmanuel Kweku', phone: '+233 244 000001', address: '45 Liberation Road', city: 'Accra', country: 'Ghana', book: 'Fire & Glory', reference: 'cs_live_YB002', paymentStatus: 'completed', gateway: 'stripe', createdAt: '2024-03-14T16:30:00Z' },
-  { _id: '3', name: 'Sarah Amoah', phone: '+1 555 000 1234', address: '789 Church Ave', city: 'Atlanta', country: 'United States', book: 'The Prophetic Anointing', reference: 'PAY-REF-YC003', paymentStatus: 'pending', gateway: 'paystack', createdAt: '2024-03-13T12:00:00Z' },
-  { _id: '4', name: 'Michael Osei', phone: '+1 416 555 9999', address: '22 Maple Street', city: 'Toronto', country: 'Canada', book: 'Voices of Destiny', reference: 'cs_live_YD004', paymentStatus: 'completed', gateway: 'stripe', createdAt: '2024-03-12T09:00:00Z' },
-]
-
-const MOCK_CONTACTS = [
-  { _id: '1', name: 'Pastor John Addo', email: 'john@church.org', subject: 'booking', message: 'We would love to have Prophet Emmanuel at our annual convention this September in Kumasi. Please advise on his availability and requirements for the event.', read: false, createdAt: '2024-03-15T10:00:00Z' },
-  { _id: '2', name: 'Sister Ruth Boadi', email: 'ruth@example.com', subject: 'prayer', message: 'Requesting urgent prayer for my family. We are going through a very difficult season and need divine intervention and direction from God.', read: true, createdAt: '2024-03-14T08:30:00Z' },
-  { _id: '3', name: 'Bishop Frank Asare', email: 'bishop@church.net', subject: 'prophetic', message: 'I would like to schedule a personal prophetic session for myself and my wife. Please let us know your available dates and procedure for booking.', read: false, createdAt: '2024-03-13T14:00:00Z' },
-  { _id: '4', name: 'Ama Serwaa', email: 'ama@gmail.com', subject: 'books', message: 'I ordered a physical copy of Voices of Destiny two weeks ago and have not yet received it. My order reference is PAY-REF-YA001. Please assist.', read: true, createdAt: '2024-03-12T11:00:00Z' },
-]
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function StatCard({ label, value, icon: Icon, sub, color = 'primary', delay = 0 }) {
@@ -112,22 +104,7 @@ function ContactDetailModal({ contact, onClose, onReplySuccess, token }) {
       setReplyText('')
     } catch (err) {
       console.error(err)
-      if (!token || err.message === 'Network Error' || err.response?.status === 404) {
-        // Fallback for demo / offline mode
-        const simulatedContact = {
-          ...contact,
-          replyMessage: replyText,
-          repliedAt: new Date().toISOString(),
-          status: 'replied'
-        }
-        toast.success('Demo: Reply saved successfully!')
-        if (onReplySuccess) {
-          onReplySuccess(simulatedContact)
-        }
-        setReplyText('')
-      } else {
-        toast.error(err.response?.data?.error || 'Failed to send reply email')
-      }
+      toast.error(err.response?.data?.error || 'Failed to send reply email')
     } finally {
       setSending(false)
     }
@@ -503,9 +480,9 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState('overview')
-  const [ebookOrders, setEbookOrders] = useState(MOCK_EBOOKS)
-  const [physicalOrders, setPhysicalOrders] = useState(MOCK_PHYSICAL)
-  const [contacts, setContacts] = useState(MOCK_CONTACTS)
+  const [ebookOrders, setEbookOrders] = useState([])
+  const [physicalOrders, setPhysicalOrders] = useState([])
+  const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -528,13 +505,13 @@ export default function AdminDashboard() {
         axios.get(`${import.meta.env.VITE_API_URL}/api/admin/contacts`, { headers: h }),
         axios.get(`${import.meta.env.VITE_API_URL}/api/books`)
       ])
-      if (eb.data?.length) setEbookOrders(eb.data)
-      if (ph.data?.length) setPhysicalOrders(ph.data)
-      if (ct.data?.length) setContacts(ct.data)
-      if (bk.data) setBooks(bk.data)
-    } catch {
-      // Silent — mock data is already displayed
-      toast('Demo data shown — connect backend for live data', { icon: 'ℹ️', duration: 3000 })
+      setEbookOrders(eb.data || [])
+      setPhysicalOrders(ph.data || [])
+      setContacts(ct.data || [])
+      setBooks(bk.data || [])
+    } catch (err) {
+      console.error(err)
+      toast.error('Failed to fetch dashboard data')
     } finally {
       setLoading(false)
     }
@@ -1003,7 +980,7 @@ export default function AdminDashboard() {
                               <div className="w-10 h-14 bg-gray-100 rounded border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
                                 {b.coverImage ? (
                                   <img
-                                    src={b.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${b.coverImage}` : b.coverImage}
+                                    src={getCoverImageUrl(b.coverImage)}
                                     alt={b.title}
                                     className="w-full h-full object-cover"
                                   />

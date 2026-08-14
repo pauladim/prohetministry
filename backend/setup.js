@@ -33,8 +33,9 @@ async function setup() {
     console.log('✅ MongoDB connected successfully')
     await mongoose.disconnect()
   } catch (err) {
-    console.warn('⚠️  MongoDB connection failed:', err.message)
-    console.log('   The app will still run in demo mode without a database.')
+    console.error('❌ MongoDB connection failed:', err.message)
+    console.log('   Please make sure MONGODB_URI is correct and your IP is whitelisted.\n')
+    process.exit(1)
   }
 
   // Check email config

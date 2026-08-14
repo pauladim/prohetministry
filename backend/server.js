@@ -141,11 +141,10 @@ mongoose
     })
   })
   .catch((err) => {
-    console.error('❌ MongoDB connection failed:', err.message)
-
-    console.log('⚠️ Starting server without database...')
+    console.error('❌ MongoDB connection failed during startup:', err.message)
+    console.log('⚠️  Starting server... (database connection offline)')
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT} (no DB)`)
+      console.log(`🚀 Server running on port ${PORT} (offline DB)`)
     })
   })

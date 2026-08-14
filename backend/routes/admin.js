@@ -326,7 +326,7 @@ router.post('/books', authMiddleware, isAdmin, upload, async (req, res) => {
     const coverImageFile = req.files.coverImage[0]
     const pdfFile = req.files.pdfFile[0]
 
-    const coverImageUrl = await saveCoverImage(coverImageFile)
+    const coverImageId = await uploadToGridFS(coverImageFile, 'covers')
     const pdfFileId = await uploadToGridFS(pdfFile)
 
     const book = await Book.create({
@@ -335,7 +335,7 @@ router.post('/books', authMiddleware, isAdmin, upload, async (req, res) => {
       category,
       price: parseFloat(price),
       description,
-      coverImage: coverImageUrl,
+      coverImage: coverImageId,
       pdfFileId,
       type: type || 'ebook',
       tag: tag || null
@@ -367,10 +367,15 @@ router.put('/books/:id', authMiddleware, isAdmin, upload, async (req, res) => {
     if (tag !== undefined) book.tag = tag || null
 
     if (req.files && req.files.coverImage) {
-      if (book.coverImage && book.coverImage.startsWith('/uploads')) {
-        deleteCoverImage(book.coverImage)
+      if (book.coverImage) {
+        const coverStr = book.coverImage.toString()
+        if (coverStr.startsWith('/uploads')) {
+          deleteCoverImage(coverStr)
+        } else {
+          await deleteFromGridFS(book.coverImage, 'covers')
+        }
       }
-      book.coverImage = await saveCoverImage(req.files.coverImage[0])
+      book.coverImage = await uploadToGridFS(req.files.coverImage[0], 'covers')
     }
 
     if (req.files && req.files.pdfFile) {
@@ -396,8 +401,13 @@ router.delete('/books/:id', authMiddleware, isAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Book not found' })
     }
 
-    if (book.coverImage && book.coverImage.startsWith('/uploads')) {
-      deleteCoverImage(book.coverImage)
+    if (book.coverImage) {
+      const coverStr = book.coverImage.toString()
+      if (coverStr.startsWith('/uploads')) {
+        deleteCoverImage(coverStr)
+      } else {
+        await deleteFromGridFS(book.coverImage, 'covers')
+      }
     }
     if (book.pdfFileId) {
       await deleteFromGridFS(book.pdfFileId)

@@ -25,7 +25,7 @@ router.post('/', contactLimiter, validateContact, async (req, res) => {
         return res.status(500).json({ error: 'Database error: Failed to save message' })
       }
     } else {
-      console.log('ℹ️  Skipped database save for contact message (no active DB connection / demo mode)')
+      console.log('ℹ️  Skipped database save for contact message (no active DB connection)')
     }
 
     // Send acknowledgement email

@@ -7,6 +7,20 @@ import ScrollReveal from '../components/ui/ScrollReveal'
 import PaymentModal from '../components/ui/PaymentModal'
 import BookCover from '../components/ui/BookCover'
 
+const getCoverImageUrl = (coverImage) => {
+  if (!coverImage) return ''
+  if (coverImage.startsWith('http://') || coverImage.startsWith('https://')) {
+    return coverImage
+  }
+  if (coverImage.startsWith('/uploads')) {
+    return `${import.meta.env.VITE_API_URL || ''}${coverImage}`
+  }
+  if (coverImage.startsWith('/api/books/cover')) {
+    return `${import.meta.env.VITE_API_URL || ''}${coverImage}`
+  }
+  return `${import.meta.env.VITE_API_URL || ''}/api/books/cover/${coverImage}`
+}
+
 function BookCard({ book, onBuy }) {
   return (
     <motion.div
@@ -18,7 +32,7 @@ function BookCard({ book, onBuy }) {
       <div className="relative aspect-[3/2] overflow-hidden bg-gray-100 flex items-center justify-center">
         {book.coverImage ? (
           <img
-            src={book.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${book.coverImage}` : book.coverImage}
+            src={getCoverImageUrl(book.coverImage)}
             alt={book.title}
             className="w-full h-full object-cover"
           />
