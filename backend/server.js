@@ -11,6 +11,7 @@ const path = require('path')
 
 const app = express()
 
+app.set('trust proxy', 1)
 /* ─────────────────────────────────────────────
    STATIC FILES
 ───────────────────────────────────────────── */
