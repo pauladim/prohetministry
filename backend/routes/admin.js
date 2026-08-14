@@ -222,19 +222,19 @@ router.post('/contacts/:id/reply', authMiddleware, isAdmin, async (req, res) => 
 
     res.json({ success: true, contact })
 
-sendContactReplyEmail({
-  to: contact.email,
-  name: contact.name,
-  subject: contact.subject,
-  message: contact.message,
-  replyMessage: contact.replyMessage
-})
-  .then(() => {
-    console.log('✅ Reply email sent successfully')
-  })
-  .catch((emailErr) => {
-    console.error('❌ Reply email failed:', emailErr.message)
-  })
+    sendContactReplyEmail({
+      to: contact.email,
+      name: contact.name,
+      subject: contact.subject,
+      message: contact.message,
+      replyMessage: contact.replyMessage
+    })
+      .then(() => {
+        console.log('✅ Reply email sent successfully')
+      })
+      .catch((emailErr) => {
+        console.error('❌ Reply email failed:', emailErr.message)
+      })
   } catch (err) {
     console.error('Reply contact message error:', err.stack || err.message)
     res.status(500).json({ error: 'Failed to save reply message' })
@@ -263,11 +263,11 @@ const uploadToGridFS = (file, bucketName = 'ebooks') => {
     const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
       bucketName
     })
-    
+
     const uploadStream = bucket.openUploadStream(file.originalname, {
       contentType: file.mimetype
     })
-    
+
     Readable.from(file.buffer)
       .pipe(uploadStream)
       .on('error', reject)

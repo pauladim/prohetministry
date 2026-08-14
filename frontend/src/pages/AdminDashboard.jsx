@@ -297,7 +297,7 @@ function BookModal({ book, onClose, onSaveSuccess, token }) {
   const [description, setDescription] = useState(book?.description || '')
   const [type, setType] = useState(book?.type || 'ebook')
   const [tag, setTag] = useState(book?.tag || '')
-  
+
   const [coverFile, setCoverFile] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -1002,10 +1002,10 @@ export default function AdminDashboard() {
                             <td className="px-5 py-3">
                               <div className="w-10 h-14 bg-gray-100 rounded border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
                                 {b.coverImage ? (
-                                  <img 
-                                    src={b.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${b.coverImage}` : b.coverImage} 
-                                    alt={b.title} 
-                                    className="w-full h-full object-cover" 
+                                  <img
+                                    src={b.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${b.coverImage}` : b.coverImage}
+                                    alt={b.title}
+                                    className="w-full h-full object-cover"
                                   />
                                 ) : (
                                   <span className="text-[10px] text-gray-400 font-bold uppercase">Cover</span>
@@ -1022,9 +1022,8 @@ export default function AdminDashboard() {
                               </span>
                             </td>
                             <td className="px-5 py-3">
-                              <span className={`text-xs px-2.5 py-0.5 rounded-full font-accent ${
-                                b.type === 'ebook' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-                              }`}>
+                              <span className={`text-xs px-2.5 py-0.5 rounded-full font-accent ${b.type === 'ebook' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                                }`}>
                                 {b.type === 'ebook' ? 'E-BOOK' : 'PRINT'}
                               </span>
                             </td>

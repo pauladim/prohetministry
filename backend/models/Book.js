@@ -7,7 +7,7 @@ const bookSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   description: { type: String, required: true, trim: true },
   coverImage: { type: String, required: true }, // Local path like /uploads/filename
-  pdfFileId: { type: mongoose.Schema.Types.ObjectId, required: function() { return this.type === 'ebook'; } }, // GridFS file ID
+  pdfFileId: { type: mongoose.Schema.Types.ObjectId, required: function () { return this.type === 'ebook'; } }, // GridFS file ID
   type: { type: String, enum: ['ebook', 'physical'], default: 'ebook' },
   tag: { type: String, default: null }
 }, {

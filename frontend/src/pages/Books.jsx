@@ -17,10 +17,10 @@ function BookCard({ book, onBuy }) {
       {/* Book cover */}
       <div className="relative aspect-[3/2] overflow-hidden bg-gray-100 flex items-center justify-center">
         {book.coverImage ? (
-          <img 
-            src={book.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${book.coverImage}` : book.coverImage} 
-            alt={book.title} 
-            className="w-full h-full object-cover" 
+          <img
+            src={book.coverImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${book.coverImage}` : book.coverImage}
+            alt={book.title}
+            className="w-full h-full object-cover"
           />
         ) : (
           <BookCover title={book.title} type={book.type} tag={book.tag} className="absolute inset-0" />
@@ -149,11 +149,10 @@ export default function Books() {
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-body transition-all duration-300 ${
-                activeTab === id
+              className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-body transition-all duration-300 ${activeTab === id
                   ? 'bg-green-600 text-white font-medium'
                   : 'text-gray-700 hover:text-gray-900 border border-green-800/20 hover:border-green-600/30'
-              }`}
+                }`}
             >
               <Icon size={14} />
               {label}
