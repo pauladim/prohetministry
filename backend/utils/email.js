@@ -361,7 +361,7 @@ async function sendEbookDownloadEmail({
   console.log('📚 Sending ebook email to:', to)
 
   const isDocx = fileExtension.toLowerCase() === '.docx'
-  const downloadText = isDocx ? 'Download Word Document' : 'Download PDF'
+  const downloadText = isDocx ? 'Download Book' : 'Download Book'
   const showReadOnline = !isDocx && readOnlineUrl
 
   const escapedName = escapeHtml(name)

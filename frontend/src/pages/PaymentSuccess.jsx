@@ -86,7 +86,7 @@ export default function PaymentSuccess() {
               </p>
               <div className="glass-card rounded-xl p-4 mb-8 border border-green-200">
                 <div className="text-xs text-gray-500 mb-1">Payment Reference</div>
-                <div className="font-body text-sm text-gray-700 font-mono">{reference}</div>
+                <div className="font-body text-sm text-gray-700 font-mono break-all">{reference}</div>
               </div>
               <Link to="/books" className="btn-primary justify-center w-full">
                 <span>Browse More Books</span>
