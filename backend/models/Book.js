@@ -7,7 +7,16 @@ const bookSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   description: { type: String, required: true, trim: true },
   coverImage: { type: mongoose.Schema.Types.ObjectId, required: true }, // GridFS file ID
-  pdfFileId: { type: mongoose.Schema.Types.ObjectId, required: function () { return this.type === 'ebook'; } }, // GridFS file ID
+  fileId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: function () {
+      return this.type === 'ebook'
+    }
+  },
+  fileName: { type: String },
+  fileMimeType: { type: String },
+  fileExtension: { type: String },
+
   type: { type: String, enum: ['ebook', 'physical'], default: 'ebook' },
   tag: { type: String, default: null }
 }, {

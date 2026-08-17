@@ -293,7 +293,15 @@ function BookModal({ book, onClose, onSaveSuccess, token }) {
         return
       }
       if (type === 'ebook' && !pdfFile) {
-        toast.error('PDF file is required for e-books')
+        toast.error('PDF or DOCX file is required for e-books')
+        return
+      }
+    }
+
+    if (pdfFile && type === 'ebook') {
+      const fileExt = pdfFile.name.split('.').pop().toLowerCase()
+      if (fileExt !== 'pdf' && fileExt !== 'docx') {
+        toast.error('Only PDF and DOCX files are allowed for e-books.')
         return
       }
     }
@@ -443,13 +451,14 @@ function BookModal({ book, onClose, onSaveSuccess, token }) {
             {type === 'ebook' && (
               <div>
                 <label className="block text-xs font-semibold text-gray-800 uppercase mb-1">
-                  PDF E-Book File {book ? '(Optional)' : '*'}
+                  PDF/DOCX E-Book File {book ? '(Optional)' : '*'}
                 </label>
+                <span className="block text-[11px] text-gray-500 mb-1">Accepted file formats: PDF and DOCX</span>
                 <input
-                  type="file" accept="application/pdf" onChange={e => setPdfFile(e.target.files[0])}
+                  type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={e => setPdfFile(e.target.files[0])}
                   className="w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                 />
-                {book && book.pdfFileId && <div className="text-[10px] text-gray-500 mt-1 truncate">Has uploaded PDF</div>}
+                {book && book.fileId && <div className="text-[10px] text-gray-500 mt-1 truncate">Has uploaded e-book file</div>}
               </div>
             )}
           </div>

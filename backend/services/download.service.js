@@ -15,8 +15,8 @@ function generateDownloadToken(purchase) {
 
   return jwt.sign(
     {
-      purchaseId: purchase._id,
-      bookId: purchase.book,
+      purchaseId: purchase._id.toString(),
+      bookId: purchase.book.toString(),
       email: purchase.user.email
     },
     process.env.JWT_SECRET,
@@ -27,9 +27,15 @@ function generateDownloadToken(purchase) {
 /**
  * Verify download token and return associated book, purchase, and stream metadata
  * @param {string} token - The JWT download token
- * @returns {Promise<Object>} Object containing purchase, book, and pdfFileId
+ * @returns {Promise<Object>} Object containing purchase, book, and fileId
  */
 async function verifyDownloadToken(token) {
+  if (!process.env.JWT_SECRET) {
+    const err = new Error('JWT_SECRET is not configured on the server')
+    err.status = 500
+    throw err
+  }
+
   if (!token) {
     const err = new Error('Token is required')
     err.status = 400
@@ -57,6 +63,13 @@ async function verifyDownloadToken(token) {
     throw err
   }
 
+  // Secure validation: match decoded JWT token payload with purchase record
+  if (!purchase.user || purchase.user.email !== decoded.email || !purchase.book || purchase.book.toString() !== decoded.bookId) {
+    const err = new Error('Unauthorized download request')
+    err.status = 403
+    throw err
+  }
+
   if (purchase.paymentStatus !== 'completed') {
     const err = new Error('Payment for this book has not been confirmed')
     err.status = 403 // Forbidden
@@ -70,7 +83,7 @@ async function verifyDownloadToken(token) {
     throw err
   }
 
-  if (!book.pdfFileId) {
+  if (!book.fileId || !mongoose.Types.ObjectId.isValid(book.fileId)) {
     const err = new Error('E-book file has not been configured for this book')
     err.status = 404
     throw err
@@ -81,14 +94,14 @@ async function verifyDownloadToken(token) {
     bucketName: 'ebooks'
   })
 
-  const files = await bucket.find({ _id: new mongoose.Types.ObjectId(book.pdfFileId) }).toArray()
+  const files = await bucket.find({ _id: new mongoose.Types.ObjectId(book.fileId) }).toArray()
   if (files.length === 0) {
-    const err = new Error('The e-book PDF file is missing in database storage')
+    const err = new Error('The e-book file is missing in database storage')
     err.status = 404
     throw err
   }
 
-  return { purchase, book, pdfFileId: book.pdfFileId }
+  return { purchase, book, fileId: book.fileId, gridFsFile: files[0] }
 }
 
 /**

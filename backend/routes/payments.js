@@ -569,8 +569,11 @@ async function handleSuccessfulPayment(order) {
       order.orderStatus = 'paid'
       await order.save()
 
+      const fileExtension = book.fileExtension || '.pdf'
       const downloadUrl = `${baseUrl}/api/download/${token}`
-      const readOnlineUrl = `${baseUrl}/api/download/${token}?inline=true`
+      const readOnlineUrl = fileExtension.toLowerCase() === '.pdf'
+        ? `${baseUrl}/api/download/${token}?inline=true`
+        : null
 
       await sendEbookDownloadEmail({
         to: order.email,
@@ -578,7 +581,8 @@ async function handleSuccessfulPayment(order) {
         bookTitle: order.bookTitle,
         downloadUrl,
         readOnlineUrl,
-        reference: order.paymentReference
+        reference: order.paymentReference,
+        fileExtension
       })
 
       order.emailStatus = 'sent'

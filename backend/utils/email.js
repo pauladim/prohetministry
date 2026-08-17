@@ -335,6 +335,15 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 console.log('✅ Resend email service initialized')
 
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 
 // ─────────────────────────────────────────────
 // 1. SEND EBOOK DOWNLOAD EMAIL
@@ -346,9 +355,17 @@ async function sendEbookDownloadEmail({
   bookTitle,
   downloadUrl,
   readOnlineUrl,
-  reference
+  reference,
+  fileExtension = '.pdf'
 }) {
   console.log('📚 Sending ebook email to:', to)
+
+  const isDocx = fileExtension.toLowerCase() === '.docx'
+  const downloadText = isDocx ? 'Download Word Document' : 'Download PDF'
+  const showReadOnline = !isDocx && readOnlineUrl
+
+  const escapedName = escapeHtml(name)
+  const escapedBookTitle = escapeHtml(bookTitle)
 
   const html = `
 <!DOCTYPE html>
@@ -466,12 +483,12 @@ async function sendEbookDownloadEmail({
 
     <h1>Your Book Is Ready</h1>
 
-    <p>Dear ${name},</p>
+    <p>Dear ${escapedName},</p>
 
     <p>
       Thank you for purchasing
       <strong style="color: #16a34a;">
-        ${bookTitle}
+        ${escapedBookTitle}
       </strong>.
       Your payment has been confirmed.
       You can now access your e-book using the button below.
@@ -480,13 +497,13 @@ async function sendEbookDownloadEmail({
     <div style="text-align: center; margin: 30px 0;">
 
       <a href="${downloadUrl}" class="btn">
-        Download PDF
+        ${downloadText}
       </a>
 
     </div>
 
     ${
-      readOnlineUrl
+      showReadOnline
         ? `
     <div style="text-align: center; margin: 20px 0;">
 
@@ -577,6 +594,10 @@ async function sendPhysicalOrderConfirmationEmail({
 }) {
   console.log('📦 Sending physical order email to:', to)
 
+  const escapedName = escapeHtml(name)
+  const escapedBookTitle = escapeHtml(bookTitle)
+  const escapedReference = escapeHtml(reference)
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -634,13 +655,13 @@ async function sendPhysicalOrderConfirmationEmail({
     <h1>Order Confirmed! 📦</h1>
 
     <p>
-      Dear ${name},
+      Dear ${escapedName},
     </p>
 
     <p>
       Your order for
       <strong style="color:#16a34a;">
-        ${bookTitle}
+        ${escapedBookTitle}
       </strong>
       has been confirmed.
     </p>
@@ -652,7 +673,7 @@ async function sendPhysicalOrderConfirmationEmail({
 
     <p>
       Payment Reference:
-      <strong>${reference}</strong>
+      <strong>${escapedReference}</strong>
     </p>
 
     <div class="footer">
@@ -714,6 +735,8 @@ async function sendContactAcknowledgement({
     to
   )
 
+  const escapedName = escapeHtml(name)
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -772,7 +795,7 @@ async function sendContactAcknowledgement({
     <h1>Message Received</h1>
 
     <p>
-      Dear ${name},
+      Dear ${escapedName},
     </p>
 
     <p>
@@ -854,6 +877,11 @@ async function sendContactReplyEmail({
     to
   )
 
+  const escapedName = escapeHtml(name)
+  const escapedSubject = escapeHtml(subject)
+  const escapedMessage = escapeHtml(message)
+  const escapedReplyMessage = escapeHtml(replyMessage)
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -926,11 +954,11 @@ async function sendContactReplyEmail({
 
     <h1>
       Response to Your Inquiry:
-      ${subject}
+      ${escapedSubject}
     </h1>
 
     <p>
-      Dear ${name},
+      Dear ${escapedName},
     </p>
 
     <p>
@@ -943,7 +971,7 @@ async function sendContactReplyEmail({
       <strong>Message:</strong>
 
       <p style="white-space: pre-line;">
-        ${replyMessage}
+        ${escapedReplyMessage}
       </p>
 
     </div>
@@ -955,7 +983,7 @@ async function sendContactReplyEmail({
       </strong>
 
       <p>
-        ${message}
+        ${escapedMessage}
       </p>
 
     </div>

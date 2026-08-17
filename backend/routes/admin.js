@@ -252,7 +252,32 @@ const Book = require('../models/Book')
 const storage = multer.memoryStorage()
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'pdfFile') {
+      const ext = path.extname(file.originalname).toLowerCase()
+      const allowedExts = ['.pdf', '.docx']
+      const allowedMimes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/octet-stream',
+        'application/x-zip-compressed'
+      ]
+
+      if (allowedExts.includes(ext) && (allowedMimes.includes(file.mimetype) || !file.mimetype)) {
+        cb(null, true)
+      } else {
+        return cb(new Error('Only PDF and DOCX files are allowed for e-books.'), false)
+      }
+    } else if (file.fieldname === 'coverImage') {
+      if (!file.mimetype.startsWith('image/')) {
+        return cb(new Error('Only image files are allowed for cover images.'), false)
+      }
+      cb(null, true)
+    } else {
+      cb(null, true)
+    }
+  }
 }).fields([
   { name: 'coverImage', maxCount: 1 },
   { name: 'pdfFile', maxCount: 1 }
@@ -264,8 +289,23 @@ const uploadToGridFS = (file, bucketName = 'ebooks') => {
       bucketName
     })
 
+    const ext = path.extname(file.originalname).toLowerCase()
+    let mimetype = file.mimetype
+    if (ext === '.pdf') {
+      mimetype = 'application/pdf'
+    } else if (ext === '.docx') {
+      mimetype = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    }
+
     const uploadStream = bucket.openUploadStream(file.originalname, {
-      contentType: file.mimetype
+      contentType: mimetype,
+      metadata: {
+        originalName: file.originalname,
+        mimeType: mimetype,
+        extension: ext,
+        size: file.size,
+        uploadDate: new Date()
+      }
     })
 
     Readable.from(file.buffer)
@@ -319,15 +359,34 @@ router.post('/books', authMiddleware, isAdmin, upload, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
-    if (!req.files || !req.files.coverImage || !req.files.pdfFile) {
-      return res.status(400).json({ error: 'Both cover image and PDF file are required' })
+    if (!req.files || !req.files.coverImage || (type !== 'physical' && !req.files.pdfFile)) {
+      const errorMsg = type === 'physical' ? 'Cover image is required' : 'Both cover image and e-book file are required'
+      return res.status(400).json({ error: errorMsg })
     }
 
     const coverImageFile = req.files.coverImage[0]
-    const pdfFile = req.files.pdfFile[0]
-
     const coverImageId = await uploadToGridFS(coverImageFile, 'covers')
-    const pdfFileId = await uploadToGridFS(pdfFile)
+
+    let fileId = null
+    let fileName = null
+    let fileMimeType = null
+    let fileExtension = null
+
+    if (type !== 'physical' && req.files.pdfFile) {
+      const pdfFile = req.files.pdfFile[0]
+      fileId = await uploadToGridFS(pdfFile)
+      fileName = pdfFile.originalname
+      
+      const ext = path.extname(pdfFile.originalname).toLowerCase()
+      fileExtension = ext
+      if (ext === '.pdf') {
+        fileMimeType = 'application/pdf'
+      } else if (ext === '.docx') {
+        fileMimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      } else {
+        fileMimeType = pdfFile.mimetype || 'application/octet-stream'
+      }
+    }
 
     const book = await Book.create({
       title,
@@ -336,7 +395,10 @@ router.post('/books', authMiddleware, isAdmin, upload, async (req, res) => {
       price: parseFloat(price),
       description,
       coverImage: coverImageId,
-      pdfFileId,
+      fileId,
+      fileName,
+      fileMimeType,
+      fileExtension,
       type: type || 'ebook',
       tag: tag || null
     })
@@ -363,7 +425,16 @@ router.put('/books/:id', authMiddleware, isAdmin, upload, async (req, res) => {
     if (category) book.category = category
     if (price) book.price = parseFloat(price)
     if (description) book.description = description
-    if (type) book.type = type
+    if (type) {
+      if (type === 'physical' && book.fileId) {
+        await deleteFromGridFS(book.fileId)
+        book.fileId = undefined
+        book.fileName = undefined
+        book.fileMimeType = undefined
+        book.fileExtension = undefined
+      }
+      book.type = type
+    }
     if (tag !== undefined) book.tag = tag || null
 
     if (req.files && req.files.coverImage) {
@@ -379,10 +450,22 @@ router.put('/books/:id', authMiddleware, isAdmin, upload, async (req, res) => {
     }
 
     if (req.files && req.files.pdfFile) {
-      if (book.pdfFileId) {
-        await deleteFromGridFS(book.pdfFileId)
+      if (book.fileId) {
+        await deleteFromGridFS(book.fileId)
       }
-      book.pdfFileId = await uploadToGridFS(req.files.pdfFile[0])
+      const newPdfFile = req.files.pdfFile[0]
+      book.fileId = await uploadToGridFS(newPdfFile)
+      book.fileName = newPdfFile.originalname
+      
+      const ext = path.extname(newPdfFile.originalname).toLowerCase()
+      book.fileExtension = ext
+      if (ext === '.pdf') {
+        book.fileMimeType = 'application/pdf'
+      } else if (ext === '.docx') {
+        book.fileMimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      } else {
+        book.fileMimeType = newPdfFile.mimetype || 'application/octet-stream'
+      }
     }
 
     await book.save()
@@ -409,8 +492,8 @@ router.delete('/books/:id', authMiddleware, isAdmin, async (req, res) => {
         await deleteFromGridFS(book.coverImage, 'covers')
       }
     }
-    if (book.pdfFileId) {
-      await deleteFromGridFS(book.pdfFileId)
+    if (book.fileId) {
+      await deleteFromGridFS(book.fileId)
     }
 
     await Book.findByIdAndDelete(req.params.id)
