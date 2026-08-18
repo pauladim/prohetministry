@@ -17,6 +17,7 @@ import Contact from './pages/Contact'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import PaymentSuccess from './pages/PaymentSuccess'
+import DownloadVerification from './pages/DownloadVerification'
 import NotFound from './pages/NotFound'
 
 function AnimatedRoutes() {
@@ -38,6 +39,7 @@ function AnimatedRoutes() {
           <Route path="/books"             element={<Books />} />
           <Route path="/contact"           element={<Contact />} />
           <Route path="/payment-success"   element={<PaymentSuccess />} />
+          <Route path="/download/:token"   element={<DownloadVerification />} />
           <Route path="/admin/login"       element={<AdminLogin />} />
           <Route path="/admin/dashboard"   element={
             <ProtectedRoute>

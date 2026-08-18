@@ -559,20 +559,23 @@ async function handleSuccessfulPayment(order) {
 
     // 3. Complete Order & Send Email
     if (order.bookType === 'ebook') {
-      // Generate a secure JWT download token expiring in 24 hours
-      const token = downloadService.generateDownloadToken(purchase)
+      // Generate a secure raw token and its hash
+      const rawToken = downloadService.generateDownloadToken()
+      const hashedToken = downloadService.hashToken(rawToken)
 
       // Update order details
-      order.downloadToken = token
+      order.downloadToken = hashedToken
+      order.downloadTokenCreatedAt = new Date()
       order.downloadExpiresAt = new Date(Date.now() + 24 * 3600000) // 24 hours from now
       order.paymentStatus = 'completed'
       order.orderStatus = 'paid'
       await order.save()
 
       const fileExtension = book.fileExtension || '.pdf'
-      const downloadUrl = `${baseUrl}/api/download/${token}`
+      const frontendUrl = process.env.FRONTEND_URL || 'https://prohetministry-l1ww-rose.vercel.app'
+      const downloadUrl = `${frontendUrl}/download/${rawToken}`
       const readOnlineUrl = fileExtension.toLowerCase() === '.pdf'
-        ? `${baseUrl}/api/download/${token}?inline=true`
+        ? `${frontendUrl}/download/${rawToken}?inline=true`
         : null
 
       await sendEbookDownloadEmail({

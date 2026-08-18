@@ -40,12 +40,14 @@ router.post('/delivery', validateDelivery, async (req, res) => {
 
 // ─── E-Book Download Redirect (Backward Compatibility) ──────────────────────
 router.get('/download/:token', (req, res) => {
-  res.redirect(`/api/download/${req.params.token}`)
+  const frontendUrl = process.env.FRONTEND_URL || 'https://prohetministry-l1ww-rose.vercel.app'
+  res.redirect(`${frontendUrl}/download/${req.params.token}`)
 })
 
 // ─── E-Book Read Online Redirect (Backward Compatibility) ───────────────────
 router.get('/read/:token', (req, res) => {
-  res.redirect(`/api/download/${req.params.token}?inline=true`)
+  const frontendUrl = process.env.FRONTEND_URL || 'https://prohetministry-l1ww-rose.vercel.app'
+  res.redirect(`${frontendUrl}/download/${req.params.token}?inline=true`)
 })
 
 module.exports = router

@@ -8,10 +8,11 @@ const Order = require('../models/Order')
 async function downloadBook(req, res, next) {
   try {
     const { token } = req.params
-    const isInline = req.query.inline === 'true'
+    const email = req.body.email
+    const isInline = req.query.inline === 'true' || req.body.inline === 'true'
 
-    // Verify token and fetch purchase & book info
-    const { book, fileId, gridFsFile, purchase } = await downloadService.verifyDownloadToken(token)
+    // Verify token, email and fetch purchase & book info
+    const { book, fileId, gridFsFile, purchase } = await downloadService.verifyDownloadTokenAndEmail(token, email)
 
     // Determine content type and filename extension
     const contentType = (gridFsFile && gridFsFile.contentType)
@@ -78,6 +79,26 @@ async function downloadBook(req, res, next) {
   }
 }
 
+/**
+ * Handle verification of purchase email before download begins
+ */
+async function verifyEmail(req, res, next) {
+  try {
+    const { token } = req.params
+    const email = req.body.email
+
+    // Validate email, token, and download permissions
+    await downloadService.verifyDownloadTokenAndEmail(token, email)
+
+    res.json({ success: true, message: 'Verification successful' })
+  } catch (err) {
+    console.error('[ERROR] [DOWNLOAD_CONTROLLER] Email verification failed:', err.message)
+    const status = err.status || 500
+    res.status(status).json({ error: err.message || 'Internal server error' })
+  }
+}
+
 module.exports = {
-  downloadBook
+  downloadBook,
+  verifyEmail
 }

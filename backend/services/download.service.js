@@ -1,82 +1,79 @@
-const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 const mongoose = require('mongoose')
 const Purchase = require('../models/purchase.model')
 const Book = require('../models/Book')
+const Order = require('../models/Order')
 
 /**
- * Generate a secure download token that expires in 24 hours
- * @param {Object} purchase - The Purchase document
- * @returns {string} JWT download token
+ * Generate a cryptographically secure random token (32 bytes -> 64 chars hex string)
+ * @returns {string} The raw download token
  */
-function generateDownloadToken(purchase) {
-  if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not configured on the server')
-  }
-
-  return jwt.sign(
-    {
-      purchaseId: purchase._id.toString(),
-      bookId: purchase.book.toString(),
-      email: purchase.user.email
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: '24h' }
-  )
+function generateDownloadToken() {
+  return crypto.randomBytes(32).toString('hex')
 }
 
 /**
- * Verify download token and return associated book, purchase, and stream metadata
- * @param {string} token - The JWT download token
- * @returns {Promise<Object>} Object containing purchase, book, and fileId
+ * Hash a raw token using SHA-256 for secure database storage and comparison
+ * @param {string} token - The raw download token
+ * @returns {string} The SHA-256 hash of the token in hex format
  */
-async function verifyDownloadToken(token) {
-  if (!process.env.JWT_SECRET) {
-    const err = new Error('JWT_SECRET is not configured on the server')
-    err.status = 500
-    throw err
-  }
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
 
+/**
+ * Verify download token and email, and return associated book, purchase, and stream metadata
+ * @param {string} token - The raw download token
+ * @param {string} submittedEmail - The email address submitted for verification
+ * @returns {Promise<Object>} Object containing order, purchase, book, fileId, and GridFS file details
+ */
+async function verifyDownloadTokenAndEmail(token, submittedEmail) {
   if (!token) {
     const err = new Error('Token is required')
     err.status = 400
     throw err
   }
 
-  let decoded
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET)
-  } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      const expiredErr = new Error('Download link has expired (24-hour limit reached)')
-      expiredErr.status = 410 // Gone
-      throw expiredErr
-    }
-    const invalidErr = new Error('Invalid download link')
-    invalidErr.status = 400 // Bad Request
-    throw invalidErr
-  }
-
-  const purchase = await Purchase.findById(decoded.purchaseId)
-  if (!purchase) {
-    const err = new Error('Purchase record not found')
-    err.status = 404
+  if (!submittedEmail) {
+    const err = new Error('Email is required')
+    err.status = 400
     throw err
   }
 
-  // Secure validation: match decoded JWT token payload with purchase record
-  if (!purchase.user || purchase.user.email !== decoded.email || !purchase.book || purchase.book.toString() !== decoded.bookId) {
-    const err = new Error('Unauthorized download request')
-    err.status = 403
+  // 1. Hash raw token and lookup in Order database
+  const hashedToken = hashToken(token)
+  const order = await Order.findOne({ downloadToken: hashedToken })
+  if (!order) {
+    const err = new Error('Invalid download link')
+    err.status = 400
     throw err
   }
 
-  if (purchase.paymentStatus !== 'completed') {
+  // 2. Check that the token has not expired (24-hour limit)
+  if (!order.downloadExpiresAt || new Date() > order.downloadExpiresAt) {
+    const err = new Error('This download link has expired. Please contact support or request a new download link.')
+    err.status = 410 // Gone
+    throw err
+  }
+
+  // 3. Normalize emails and check that they match
+  const normSubmitted = submittedEmail.trim().toLowerCase()
+  const normOrder = order.email.trim().toLowerCase()
+  if (normSubmitted !== normOrder) {
+    const err = new Error('This download link is associated with a different email address.')
+    err.status = 403 // Forbidden
+    throw err
+  }
+
+  // 4. Check order payment status / authorization
+  if (order.paymentStatus !== 'completed' && order.orderStatus !== 'paid') {
     const err = new Error('Payment for this book has not been confirmed')
     err.status = 403 // Forbidden
     throw err
   }
 
-  const book = await Book.findById(purchase.book)
+  // 5. Fetch catalog book to verify fileId and GridFS file
+  const book = await Book.findById(order.bookId)
   if (!book) {
     const err = new Error('The purchased book is no longer available in the catalog')
     err.status = 404
@@ -89,7 +86,6 @@ async function verifyDownloadToken(token) {
     throw err
   }
 
-  // Verify file exists in GridFS
   const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
     bucketName: 'ebooks'
   })
@@ -101,7 +97,10 @@ async function verifyDownloadToken(token) {
     throw err
   }
 
-  return { purchase, book, fileId: book.fileId, gridFsFile: files[0] }
+  // Fetch purchase details (if any) for incrementing download counts and additional verification
+  const purchase = await Purchase.findOne({ paymentReference: order.paymentReference })
+
+  return { order, purchase, book, fileId: book.fileId, gridFsFile: files[0] }
 }
 
 /**
@@ -118,6 +117,7 @@ function getDownloadStream(fileId) {
 
 module.exports = {
   generateDownloadToken,
-  verifyDownloadToken,
+  hashToken,
+  verifyDownloadTokenAndEmail,
   getDownloadStream
 }

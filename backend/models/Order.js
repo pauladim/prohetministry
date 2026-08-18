@@ -25,6 +25,7 @@ const orderSchema = new mongoose.Schema({
   emailStatus: { type: String, enum: ['not_sent', 'sent', 'failed'], default: 'not_sent' },
   downloadToken: { type: String },
   downloadCount: { type: Number, default: 0 },
+  downloadTokenCreatedAt: { type: Date },
   downloadExpiresAt: { type: Date },
   filePath: { type: String },
 

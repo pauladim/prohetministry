@@ -10,6 +10,7 @@ const downloadLimiter = rateLimit({
 })
 
 // Route for secure download token verification and streaming
-router.get('/:token', downloadLimiter, downloadController.downloadBook)
+router.post('/:token/verify', downloadLimiter, downloadController.verifyEmail)
+router.post('/:token', downloadLimiter, downloadController.downloadBook)
 
 module.exports = router
